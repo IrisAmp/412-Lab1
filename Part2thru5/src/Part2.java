@@ -1,3 +1,10 @@
+/*
+ * January 25, 2015
+ * Author Brandon Yue and Christoph Sydora
+ *
+ * This program makes the robot drive in a line, rectangle, circle, and figure eight.
+ */
+ 
 import lejos.hardware.Button;
 import lejos.hardware.motor.NXTMotor;
 import lejos.hardware.port.MotorPort;
