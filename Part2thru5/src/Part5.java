@@ -1,11 +1,24 @@
+/*
+ * January 21, 2015
+ * Author Christoph Sydora, Brandon Yue
+ *
+ *  Program for Braitenberg Robot. Uses light sensors to make the robot atract to the light aggressivly or lovingly
+ * or move away from light cowardly or explore for other light sources.
+ */
+ 
 import lejos.hardware.Button;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.motor.NXTMotor;
 import lejos.hardware.port.MotorPort;
 import lejos.hardware.port.Port;
+import lejos.hardware.port.SensorPort;
 import lejos.hardware.sensor.EV3ColorSensor;
+import lejos.hardware.sensor.NXTLightSensor;
+import lejos.hardware.sensor.SensorMode;
 import lejos.hardware.sensor.SensorModes;
 import lejos.robotics.EncoderMotor;
+import lejos.robotics.LightDetector;
+import lejos.robotics.LightScanner;
 import lejos.robotics.SampleProvider;
 import lejos.robotics.filter.MeanFilter;
 import lejos.utility.Delay;
@@ -16,12 +29,17 @@ public class Part5
 	public static void main(String[] args)
 	{
 		Braitenberg robot = new Braitenberg();
-		//robot.coward();
-		//robot.aggressive();
+		robot.coward();
+		robot.aggressive();
 		robot.love();
-		//robot.explore();
+		robot.explore();
 	}
 	
+	/**
+	 * 
+	 * class for braitenberg vehicle
+	 *
+	 */
 	public static class Braitenberg
 	{
 		private EncoderMotor motorL;
@@ -31,7 +49,9 @@ public class Part5
 		private float[] sampleL;
 		private float[] sampleR;
 		
-		@SuppressWarnings("resource")
+		/**
+		 * class constructor
+		 */
 		public Braitenberg()
 		{
 			motorL = new NXTMotor(MotorPort.A);
@@ -50,7 +70,9 @@ public class Part5
 			lightSensorR = new MeanFilter(rawProvider2, 5);
 			sampleR = new float[lightSensorL.sampleSize()];
 		}
-		
+		/**
+		 * move away from the detected light
+		 */
 		public void coward()
 		{
 			System.out.println("Coward.");
@@ -75,6 +97,9 @@ public class Part5
 			}
 		}
 		
+		/**
+		 * move towards light faster as light intensity increases
+		 */
 		public void aggressive()
 		{
 			System.out.println("Aggressive.");
@@ -99,11 +124,12 @@ public class Part5
 			}
 		}
 		
+		/**
+		 * function for moving towards light slower as the light intensity increases
+		 */
 		public void love()
 		{
 			System.out.println("Love.");
-			
-			float threshold = 1.5f;
 			
 			motorL.forward();
 			motorR.forward();
@@ -112,14 +138,14 @@ public class Part5
 			{
 				getSample();
 				
-				double rawL = Math.min(sampleL[0] * threshold, 1.0f);
-				double rawR = Math.min(sampleR[0] * threshold, 1.0f);
+				int rawL = (int) (sampleL[0] * 100);
+				int rawR = (int) (sampleR[0] * 100);
 				
-				int powerL = (int) (Math.sin(Math.PI * rawL) * 100.0);
-				int powerR = (int) (Math.sin(Math.PI * rawR) * 100.0);
+				if (rawL > 50) rawL = 100 - rawL;
+				if (rawL > 50) rawR = 100 - rawR;
 
-				motorL.setPower(powerR);
-				motorR.setPower(powerL);
+				motorL.setPower(rawR);
+				motorR.setPower(rawL);
 				
 				if (Button.getButtons() != 0)
 				{
@@ -131,6 +157,9 @@ public class Part5
 			}
 		}
 		
+		/**
+		 * move aggressively towards light until a certain threshold then turn away
+		 */
 		public void explore()
 		{
 			System.out.println("Explore.");
@@ -166,6 +195,9 @@ public class Part5
 			}
 		}
 		
+		/**
+		 * turns robot in another direction
+		 */
 		private void turnAway()
 		{
 			motorL.setPower(75);
@@ -174,6 +206,9 @@ public class Part5
 			Delay.msDelay(3000);
 		}
 
+		/**
+		 * gets a sample from the light sensors
+		 */
 		private void getSample()
 		{
 			lightSensorL.fetchSample(sampleL, 0);
